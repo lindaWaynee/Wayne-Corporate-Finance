@@ -4,13 +4,13 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "build": "prisma generate --schema=./prisma/schema.prisma && tsc -p tsconfig.json"
-    "start": "node dist/server.js",
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev --name initial",
-    "db:seed": "tsx prisma/seed.ts"
-  },
+  "dev": "tsx watch src/server.ts",
+  "build": "prisma generate --schema=./prisma/schema.prisma && tsc -p tsconfig.json",
+  "start": "node dist/server.js",
+  "db:generate": "prisma generate --schema=./prisma/schema.prisma",
+  "db:migrate": "prisma migrate dev --name initial",
+  "db:seed": "tsx prisma/seed.ts"
+},
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
