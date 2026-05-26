@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: wayne-finance-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: wayne_finance
+      POSTGRES_USER: wayne_admin
+      POSTGRES_PASSWORD: wayne_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - wayne_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wayne_admin -d wayne_finance"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  wayne_postgres_data:
+

@@ -1,0 +1,160 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "windows", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  DIRECTOR
+  MANAGER
+  FINANCIAL_ANALYST
+  OPERATIONS
+  AUDITOR
+}
+
+enum RecordStatus {
+  COMPLETED
+  PENDING
+  URGENT
+  IN_PROGRESS
+  ARCHIVED
+}
+
+enum Priority {
+  LOW
+  NORMAL
+  HIGH
+  CRITICAL
+}
+
+enum TransactionKind {
+  PAYABLE
+  RECEIVABLE
+}
+
+enum ClientState {
+  ACTIVE
+  DELINQUENT
+  INACTIVE
+}
+
+enum TaskType {
+  DAILY_CHECKLIST
+  PENDING_ISSUE
+  AGENDA
+}
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  passwordHash String
+  role         Role       @default(OPERATIONS)
+  active       Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  tasks        Task[]
+  protocols    Protocol[]
+  auditLogs    AuditLog[]
+}
+
+model Client {
+  id                   String       @id @default(cuid())
+  legalName            String
+  tradeName            String?
+  cnpj                 String       @unique
+  phone                String
+  whatsapp             String
+  email                String
+  accountant           String
+  taxRegime            String
+  state                ClientState  @default(ACTIVE)
+  internalNotes        String?
+  monthlyFee           Decimal      @db.Decimal(14, 2)
+  certificateExpiration DateTime?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  transactions         Transaction[]
+  documents            Document[]
+  protocols            Protocol[]
+  tasks                Task[]
+}
+
+model Transaction {
+  id              String          @id @default(cuid())
+  kind            TransactionKind
+  description     String
+  category        String
+  counterparty    String
+  dueDate         DateTime
+  paymentDate     DateTime?
+  amount          Decimal         @db.Decimal(14, 2)
+  recurrence      String?
+  priority        Priority        @default(NORMAL)
+  status          RecordStatus    @default(PENDING)
+  notes           String?
+  attachmentUrl   String?
+  proofUrl        String?
+  clientId        String?
+  client          Client?         @relation(fields: [clientId], references: [id])
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model Document {
+  id          String       @id @default(cuid())
+  name        String
+  category    String
+  fileType    String
+  url         String
+  reference   String?
+  status      RecordStatus @default(IN_PROGRESS)
+  uploadedAt  DateTime     @default(now())
+  clientId    String?
+  client      Client?      @relation(fields: [clientId], references: [id])
+}
+
+model Task {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  type        TaskType
+  dueDate     DateTime
+  priority    Priority     @default(NORMAL)
+  status      RecordStatus @default(PENDING)
+  notes       String?
+  responsibleId String
+  responsible User         @relation(fields: [responsibleId], references: [id])
+  clientId    String?
+  client      Client?      @relation(fields: [clientId], references: [id])
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Protocol {
+  id            String   @id @default(cuid())
+  number        String   @unique
+  action        String
+  notes         String?
+  occurredAt    DateTime @default(now())
+  responsibleId String
+  responsible   User     @relation(fields: [responsibleId], references: [id])
+  clientId      String?
+  client        Client?  @relation(fields: [clientId], references: [id])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  entity    String
+  entityId  String?
+  details   Json?
+  ipAddress String?
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}

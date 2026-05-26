@@ -1,0 +1,9 @@
+node_modules
+dist
+.env
+*.log
+coverage
+apps/api/prisma/*.db
+.vite
+.npm-cache
+.vite-preview*.log
