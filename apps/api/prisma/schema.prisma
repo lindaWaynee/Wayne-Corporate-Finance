@@ -53,7 +53,7 @@ model User {
   name         String
   email        String     @unique
   passwordHash String
-  role         Role       @default(OPERATIONS)
+  role         Role       @default(MANAGER)
   active       Boolean    @default(true)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt

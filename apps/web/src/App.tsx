@@ -307,20 +307,48 @@ function Reports() {
     </>
   );
 }
-
 function SettingsPage() {
   return (
     <>
-      <PageTitle title="Seguranca e Configuracoes" description="Governanca da plataforma, acessos, integracoes e continuidade operacional" />
+      <PageTitle
+        title="Seguranca e Configuracoes"
+        description="Governanca da plataforma, acessos, integracoes e continuidade operacional"
+      />
+
       <div className="settings-grid">
         {[
-          ["Usuarios e permissoes", "5 usuarios ativos | Perfis: Diretoria, Gestao, Analista, Auditoria"],
-          ["Autenticacao JWT", "Sessoes protegidas por token com expiracao de 8 horas"],
-          ["Auditoria interna", "128 eventos registrados neste mes | Exportacao disponivel"],
-          ["Backup automatico", "Ultimo backup: 25/05/2026 04:00 | Retencao: 90 dias"],
-          ["Integracoes bancarias", "2 contas conciliadas | Sincronizacao agendada"],
-          ["Notificacoes", "Alertas de vencimento, inadimplencia e certificados habilitados"]
-        ].map(([title, description]) => <article className="panel setting" key={title}><ShieldCheck size={25} /><h3>{title}</h3><p>{description}</p><button className="secondary">Administrar</button></article>)}
+          [
+            "Usuarios e permissoes",
+            "5 usuarios ativos | Perfis: Diretoria, Gestao, Analista, Auditoria"
+          ],
+          [
+            "Autenticacao JWT",
+            "Sessoes protegidas por token com expiracao de 8 horas"
+          ],
+          [
+            "Auditoria interna",
+            "128 eventos registrados neste mes | Exportacao disponivel"
+          ],
+          [
+            "Backup automatico",
+            "Ultimo backup: 25/05/2026 04:00 | Retencao: 90 dias"
+          ],
+          [
+            "Integracoes bancarias",
+            "2 contas conciliadas | Sincronizacao agendada"
+          ],
+          [
+            "Notificacoes",
+            "Alertas de vencimento, inadimplencia e certificados habilitados"
+          ]
+        ].map(([title, description]) => (
+          <article className="panel setting" key={title}>
+            <ShieldCheck size={25} />
+            <h3>{title}</h3>
+            <p>{description}</p>
+            <button className="secondary">Administrar</button>
+          </article>
+        ))}
       </div>
     </>
   );
@@ -357,7 +385,6 @@ function Content({ active, query }: { active: string; query: string }) {
     case "config": return <SettingsPage />;
     default: return <Dashboard query={query} />;
   }
-}
 
 export default function App() {
   const [authenticated, setAuthenticated] = useState(() => Boolean(sessionStorage.getItem("wayne_token")));
@@ -366,20 +393,33 @@ export default function App() {
   const [menu, setMenu] = useState(false);
   const currentPage = useMemo(() => navigation.find((item) => item.key === active) ?? navigation[0], [active]);
 
-  const login = async (email: string, password: string) => {
-    const response = await fetch("/api/auth/login", {
+const login = async (email: string, password: string) => {
+  const response = await fetch(
+    "https://wayneapi-production.up.railway.app/api/auth/login",
+    {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({ email, password })
-    });
-    if (!response.ok) {
-      const failure = await response.json().catch(() => ({ message: "Acesso negado." }));
-      throw new Error(failure.message ?? "Acesso negado.");
     }
-    const session = await response.json();
-    sessionStorage.setItem("wayne_token", session.token);
-    setAuthenticated(true);
-  };
+  );
+
+  if (!response.ok) {
+    const failure = await response.json().catch(() => ({
+      message: "Acesso negado."
+    }));
+
+    throw new Error(failure.message ?? "Acesso negado.");
+  }
+
+  const session = await response.json();
+
+  sessionStorage.setItem("wayne_token", session.token);
+
+  setAuthenticated(true);
+};
+
   const logout = () => {
     sessionStorage.removeItem("wayne_token");
     setAuthenticated(false);
