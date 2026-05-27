@@ -385,55 +385,86 @@ function Content({ active, query }: { active: string; query: string }) {
     case "config": return <SettingsPage />;
     default: return <Dashboard query={query} />;
   }
-
+}
 export default function App() {
-  const [authenticated, setAuthenticated] = useState(() => Boolean(sessionStorage.getItem("wayne_token")));
   const [active, setActive] = useState("dashboard");
   const [search, setSearch] = useState("");
   const [menu, setMenu] = useState(false);
-  const currentPage = useMemo(() => navigation.find((item) => item.key === active) ?? navigation[0], [active]);
 
-const login = async (email: string, password: string) => {
-  const response = await fetch(
-    "https://wayneapi-production.up.railway.app/api/auth/login",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ email, password })
-    }
+  const [authenticated, setAuthenticated] = useState(
+    !!sessionStorage.getItem("wayne_token")
   );
 
-  if (!response.ok) {
-    const failure = await response.json().catch(() => ({
-      message: "Acesso negado."
-    }));
+  const currentPage =
+    navigation.find((item) => item.key === active) ?? navigation[0];
 
-    throw new Error(failure.message ?? "Acesso negado.");
-  }
+  const login = async (email: string, password: string) => {
+    const response = await fetch(
+      "https://wayneapi-production.up.railway.app/api/auth/login",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password })
+      }
+    );
 
-  const session = await response.json();
+    if (!response.ok) {
+      const failure = await response.json().catch(() => ({
+        message: "Acesso negado."
+      }));
 
-  sessionStorage.setItem("wayne_token", session.token);
+      throw new Error(failure.message ?? "Acesso negado.");
+    }
 
-  setAuthenticated(true);
-};
+    const session = await response.json();
+
+    sessionStorage.setItem("wayne_token", session.token);
+
+    setAuthenticated(true);
+  };
 
   const logout = () => {
     sessionStorage.removeItem("wayne_token");
     setAuthenticated(false);
   };
 
-  if (!authenticated) return <Login onLogin={login} />;
-  const selectPage = (page: string) => { setActive(page); setMenu(false); };
+  if (!authenticated) {
+    return <Login onLogin={login} />;
+  }
+
+  const selectPage = (page: string) => {
+    setActive(page);
+    setMenu(false);
+  };
+
   return (
     <div className="app-shell">
       <Sidebar active={active} choose={selectPage} open={menu} />
-      {menu && <button className="overlay" aria-label="Fechar menu principal" onClick={() => setMenu(false)}><X /></button>}
+
+      {menu && (
+        <button
+          className="overlay"
+          aria-label="Fechar menu principal"
+          onClick={() => setMenu(false)}
+        >
+          <X />
+        </button>
+      )}
+
       <div className="workarea">
-        <Header page={currentPage} search={search} setSearch={setSearch} openMenu={() => setMenu(true)} logout={logout} />
-        <main><Content active={active} query={search} /></main>
+        <Header
+          page={currentPage}
+          search={search}
+          setSearch={setSearch}
+          openMenu={() => setMenu(true)}
+          logout={logout}
+        />
+
+        <main>
+          <Content active={active} query={search} />
+        </main>
       </div>
     </div>
   );
